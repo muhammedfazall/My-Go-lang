@@ -1,0 +1,3 @@
+module oddoreven
+
+go 1.25.3
