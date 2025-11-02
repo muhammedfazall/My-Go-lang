@@ -2,9 +2,9 @@ package main
 
 func main() {
 	
-	defer func (){
-		recover("panic recovered: %v",r)
-	}
+	// defer func (){
+	// 	recover("panic recovered: %v",r)
+	// }()
 
 	num1, num2 := 0, 0
 
