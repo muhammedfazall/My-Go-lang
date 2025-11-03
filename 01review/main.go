@@ -1,50 +1,51 @@
 package main
 
-func main() {
-	
-	// defer func (){
-	// 	recover("panic recovered: %v",r)
-	// }()
+import "fmt"
 
-	num1, num2 := 0, 0
-
-	
-	division := func() int {
-		
-		if num2 == 0 {
-			panic("Error: division by zero!")
-		}
-		return num1 / num2
+func divide(n1 int,n2 int) int {
+	if n2 == 0 {
+		panic("Cant divide by zero")
 	}
-	
+	return n1/n2
 }
 
-// op := ""
+func main()  {
+	defer func ()  {
+		if r := recover(); r != nil{
+			fmt.Println("Panic Recovered:",r)
+		}	
+	}()
 
-// fmt.Println("Enter first operator")
-// fmt.Scan(&num1)
+	fmt.Println(divide(50,0))
+}
 
-// fmt.Println("Enter Operation (+,-,*,/)")
-// fmt.Scan(&op)
+	// op := ""
 
-// fmt.Println("Enter second operator")
-// fmt.Scan(&num2)
+	// fmt.Println("Enter first operator")
+	// fmt.Scan(&num1)
 
-// result := 0
+	// fmt.Println("Enter Operation (+,-,*,/)")
+	// fmt.Scan(&op)
 
-// switch op {
-// case "+":
-// 	result = num1 + num2
-// case "-":
-// 	result = num1 - num2
-// case "*":
-// 	result = num1 * num2
-// case "/":
-// 	if num2 == 0 {
-// 		fmt.Println("Error! division by zero")
-// 		return
-// 	}
-// 	result = num1 / num2
-// }
+	// fmt.Println("Enter second operator")
+	// fmt.Scan(&num2)
 
-// fmt.Println("Result:",result)
+	// result := 0
+
+	// switch op {
+	// case "+":
+	// 	result = num1 + num2
+	// case "-":
+	// 	result = num1 - num2
+	// case "*":
+	// 	result = num1 * num2
+	// case "/":
+	// 	if num2 == 0 {
+	// 		fmt.Println("Error! division by zero")
+	// 		return
+	// 	}
+	// 	result = num1 / num2
+	// }
+
+	// fmt.Println("Result:",result)
+
