@@ -1,4 +1,4 @@
-module sessions
+module demosession
 
 go 1.25.3
 
