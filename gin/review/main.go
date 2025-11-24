@@ -92,11 +92,17 @@ func main() {
 	})
 
 	r.GET("/dashboard", func(ctx *gin.Context) {
-		sid,_ := ctx.Cookie(sessionCookieName)
-		// username := ctx.GetString("username")  need to set authmiddleware
+		sid, _ := ctx.Cookie(sessionCookieName)
+		username, ok := sessions[sid]
+		if !ok {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid session"})
+			return
+		}
 
-
-		ctx.JSON(http.StatusOK, gin.H{"username":sid})
+		ctx.JSON(http.StatusOK, gin.H{
+			"message": "welcome to dashboard",
+			"username": username,
+		})
 	})
 
 	r.GET("/logout", func(ctx *gin.Context) {
