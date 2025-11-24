@@ -3,14 +3,27 @@ package main
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
+
+var demoHash []byte
 
 var sessions = map[string]string{}
 
 const sessionCookieName = "session_id"
+
+func init() {
+	h, err := bcrypt.GenerateFromPassword([]byte(demoPass), bcrypt.DefaultCost)
+	if err != nil {
+		panic(err)
+	}
+	demoHash = h
+}
 
 func generateSessionID(nBytes int) (string, error) {
 	b := make([]byte, nBytes)
@@ -42,6 +55,24 @@ func deleteSession(id string) {
 const demoUser = "admin"
 const demoPass = "password123"
 
+func loggingMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+
+		method := ctx.Request.Method
+		path := ctx.FullPath()
+		ip := ctx.ClientIP()
+		t := time.Now()
+		ctx.Next()
+		delay := time.Since(t)
+		status := ctx.Writer.Status()
+
+		if path == "/login" || path == "/logout" {
+			fmt.Printf("%s %s -> %d from %s - %d\n", method, path, status, ip, delay)
+		}
+
+	}
+}
+
 func authMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		cookie, err := ctx.Cookie(sessionCookieName)
@@ -59,7 +90,9 @@ func authMiddleware() gin.HandlerFunc {
 }
 
 func main() {
-	r := gin.Default()
+	r := gin.New()
+
+	r.Use(loggingMiddleware())
 
 	r.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"message": "Hello - visit/login to get started"})
@@ -78,38 +111,53 @@ func main() {
 			return
 		}
 
-		if req.Username != demoUser || req.Password != demoPass{
-			ctx.JSON(http.StatusUnauthorized,gin.H{"error":"inavlid credentials"})
+		if req.Username == "" || req.Password == "" {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "usernamea and password are required"})
 			return
 		}
 
-		sid,err := createSession(req.Username)
-		if err != nil{
-			ctx.JSON(http.StatusInternalServerError,gin.H{"error":"could not create session"})
+		if len(req.Password) < 6 {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "password must be at least 6 characters"})
 			return
 		}
 
-		ctx.SetCookie(sessionCookieName,sid,3600,"/","",false,true)
-		ctx.JSON(http.StatusOK,gin.H{"status":"logged in"})
+		if req.Username != demoUser {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+			return
+		}
+
+		if err := bcrypt.CompareHashAndPassword(demoHash, []byte(req.Password)); err != nil {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+			return
+		}
+
+		sid, err := createSession(req.Username)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "could not create session"})
+			return
+		}
+
+		ctx.SetCookie(sessionCookieName, sid, 3600, "/", "", false, true)
+		ctx.JSON(http.StatusOK, gin.H{"status": "logged in"})
 	})
 
-	r.GET("/dashboard",authMiddleware(),func(ctx *gin.Context) {
-		username:= ctx.GetString("username")
-		ctx.JSON(http.StatusOK,gin.H{
-			"message": "welcome to dashboard",
+	r.GET("/dashboard", authMiddleware(), func(ctx *gin.Context) {
+		username := ctx.GetString("username")
+		ctx.JSON(http.StatusOK, gin.H{
+			"message":  "welcome to dashboard",
 			"username": username,
 		})
 	})
 
 	r.GET("/logout", func(ctx *gin.Context) {
-		cookie,err := ctx.Cookie(sessionCookieName)
+		cookie, err := ctx.Cookie(sessionCookieName)
 
-		if err == nil{
+		if err == nil {
 			deleteSession(cookie)
 		}
 
-		ctx.SetCookie(sessionCookieName,"",-1,"/","",false,true)
-		ctx.JSON(http.StatusOK,gin.H{"status":"logged out"})
+		ctx.SetCookie(sessionCookieName, "", -1, "/", "", false, true)
+		ctx.JSON(http.StatusOK, gin.H{"status": "logged out"})
 
 	})
 	r.Run(":8080")
