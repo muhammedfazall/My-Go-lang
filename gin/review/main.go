@@ -58,6 +58,22 @@ func LogMiddleware() gin.HandlerFunc {
 	}
 }
 
+func authMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		cookie,err := ctx.Cookie(sessionCookieName)
+		if err != nil{
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized,gin.H{"error":"please login"})
+			return 
+		}
+		if username,ok := sessions[cookie] ; ok{
+			ctx.Set("username",username)
+			ctx.Next()
+			return 
+		}
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid session"})
+	}
+}
+
 func main() {
 	r := gin.New()
 
@@ -91,13 +107,15 @@ func main() {
 
 	})
 
-	r.GET("/dashboard", func(ctx *gin.Context) {
-		sid, _ := ctx.Cookie(sessionCookieName)
-		username, ok := sessions[sid]
-		if !ok {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid session"})
-			return
-		}
+	r.GET("/dashboard",authMiddleware(), func(ctx *gin.Context) {
+		username := ctx.GetString("username")
+		
+		// sid, _ := ctx.Cookie(sessionCookieName)
+		// username, ok := sessions[sid]
+		// if !ok {
+		// 	ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid session"})
+		// 	return
+		// }
 
 		ctx.JSON(http.StatusOK, gin.H{
 			"message": "welcome to dashboard",
@@ -115,5 +133,5 @@ func main() {
 		ctx.JSON(http.StatusOK, gin.H{"message": "logged Out"})
 	})
 
-	r.Run(":9090")
+	r.Run(":8080")
 }
