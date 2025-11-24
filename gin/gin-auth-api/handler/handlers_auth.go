@@ -89,3 +89,4 @@ func LogoutHandler(ctx *gin.Context) {
 	ctx.SetCookie(db.SessionCookieName, "", -1, "/", "", false, true)
 	ctx.JSON(http.StatusOK, gin.H{"status": "logged out"})
 }
+
