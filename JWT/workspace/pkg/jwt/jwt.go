@@ -1,4 +1,4 @@
-package jwt
+package myjwt
 
 import (
 	"errors"
@@ -10,10 +10,10 @@ import (
 var secretKey = []byte("secret")
 
 
-func GenerateToken(userID,email string,ttl time.Duration)(string, error){
+func GenerateToken(role,email string,ttl time.Duration)(string, error){
 	claims := jwt.MapClaims{
-		"user_id" : userID,
 		"email" : email,
+		"role": role,
 		"exp" : time.Now().Add(ttl).Unix(),
 	}
 

@@ -1,21 +1,13 @@
 package handler
 
 import (
-	"log"
 	"net/http"
 	"time"
-	"workspjwt/pkg/jwt"
+	myjwt "workspjwt/pkg/jwt"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 )
-
-var demoUser = struct {
-	Email    string
-	Password string
-}{
-	Email:    "test@example.com",
-	Password: "1234",
-}
 
 func LoginHandler(c *gin.Context) {
 	var req struct {
@@ -28,17 +20,38 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
-	if demoUser.Email != req.Email || demoUser.Password != req.Password {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid cred"})
+	// simple login validation
+	if req.Password != "123" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "wrong email/password"})
 		return
 	}
 
+	role := "user"
+	if req.Email == "admin@example.com" {
+		role = "admin"
+	}
+
+	// generate JWT (valid for 1 hour)
 	ttl := time.Hour * 1
-	log.Println("emil", req.Email)
-	token, err := jwt.GenerateToken("123", req.Email, ttl)
+	token, err := myjwt.GenerateToken(role, req.Email, ttl)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create token" + err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot create token"})
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{"token": token})
+}
+
+func ProfileHandler(c *gin.Context) {
+	claims := c.MustGet("claims").(jwt.MapClaims)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Welcome!",
+		"role":    claims["role"],
+		"email":   claims["email"],
+	})
+}
+
+func AdminDashboard(c *gin.Context) {
+	c.JSON(200, gin.H{"message": "welcome to ad dashbrd"})
 }
