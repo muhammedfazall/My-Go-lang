@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"log"
 	jwtoken "review/pkg"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+var Users = map[string]string{}
 
 func Register(c *gin.Context) {
 	var req struct {
@@ -18,6 +21,10 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	Users["email"] = req.Email
+	Users["password"] = req.Password
+
+	log.Println(Users)
 }
 
 func Login(c *gin.Context) {
