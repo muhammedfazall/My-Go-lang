@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"log"
 	jwtoken "review/pkg"
 	"strings"
 
@@ -15,8 +16,11 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		log.Println(authheader)
+
 		parts := strings.SplitN(authheader, " ", 2)
-		if len(parts) != 2 || parts[0] != "bearer" {
+
+		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
 			c.AbortWithStatusJSON(401, gin.H{"error": "invalid token"})
 			return
 		}
