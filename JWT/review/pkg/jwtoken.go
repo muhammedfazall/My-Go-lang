@@ -75,11 +75,4 @@ func ValidateToken(tokenString string) (*CustomClaims, error) {
 	}
 
 	return claims, nil
-
-	// exp := claims.ExpiresAt
-
-	// if time.Now().Unix() > int64(exp) {
-	// 	return nil, errors.New("token expired")
-	// }
-
 }

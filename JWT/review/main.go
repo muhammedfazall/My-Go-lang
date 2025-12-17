@@ -12,13 +12,15 @@ func main() {
 	r := gin.Default()
 
 	r.POST("/register", handlers.Register)
-
 	r.POST("/login", handlers.Login)
+
 	auth := r.Group("api")
-
 	auth.Use(middlewares.AuthMiddleware())
-
 	auth.GET("/profile", handlers.Profile)
+
+	admin := auth.Group("admin")
+	admin.Use(middlewares.RoleMiddleWare("admin"))
+	admin.GET("",handlers.Admin)
 
 	r.Run(":8080")
 

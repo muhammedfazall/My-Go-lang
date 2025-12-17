@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	jwtoken "review/pkg"
 
 	"github.com/gin-gonic/gin"
@@ -36,11 +37,16 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	role := "user"
+	if req.Email == "admin@example.com" {
+	role = "admin"
+	}
+
 	newUser := User{
 		ID:       nextUserId,
 		Email:    req.Email,
 		Password: string(hashedPassword),
-		Role:     "user",
+		Role:     role,
 	}
 
 	mockDBUsers[req.Email] = newUser
@@ -49,8 +55,8 @@ func Register(c *gin.Context) {
 	// Users[req.Email] = string(hashedPassword)
 
 	// log.Println(Users)
-	
-	c.JSON(201, gin.H{"message": "User registered succesfully", "Id": newUser.ID})
+
+	c.JSON(201, gin.H{"message": role +" registered succesfully", "Id": newUser.ID})
 
 }
 
@@ -77,6 +83,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	log.Println("ROLE AT TOKEN GENERATION:", user.Role)
 	// ttl := time.Hour * 1
 	accessToken, refreshToken, err := jwtoken.GenerateAccessAndRefreshTokens(user.ID, user.Email, user.Role)
 	if err != nil {
@@ -92,4 +99,8 @@ func Profile(c *gin.Context) {
 
 	c.JSON(200, gin.H{"message": "Welcome to home",
 		"email": claims.Email})
+}
+
+func Admin(c *gin.Context) {
+	c.JSON(200, gin.H{"message": "Welcome admin mf"})
 }

@@ -37,3 +37,16 @@ func AuthMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func RoleMiddleWare(requiredRole string) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		claims := ctx.MustGet("claims").(*jwtoken.CustomClaims)
+
+		if claims.Role != requiredRole {
+			ctx.AbortWithStatusJSON(403,gin.H{"error":"Access Denied: You are not "+ requiredRole})
+			return
+		}
+
+		ctx.Next()
+	}
+}
