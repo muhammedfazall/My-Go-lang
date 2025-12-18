@@ -91,6 +91,10 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	//cookie 
+
+	c.SetCookie("access",accessToken,3600, "/", "", false, true)
+
 	c.JSON(200, gin.H{"Accesstoken": accessToken, "RefreshToken": refreshToken})
 }
 
@@ -103,4 +107,9 @@ func Profile(c *gin.Context) {
 
 func Admin(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "Welcome admin mf"})
+}
+
+func Logout(c *gin.Context){
+	c.SetCookie("access","",-1, "/", "", false, true)
+	c.JSON(200,gin.H{"message":"loged out"})
 }
