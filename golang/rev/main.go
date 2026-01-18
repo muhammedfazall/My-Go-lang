@@ -43,4 +43,20 @@ func main() {
 	fmt.Println(b1,b2)
 
 	// cycleNames(names, greet)
+
+	// ints as key type
+	phonebook := map[int]string{
+		267584967: "mario",
+		984759373: "luigi",
+		845775485: "peach",
+	}
+
+	fmt.Println(phonebook)
+	fmt.Println(phonebook[267584967])
+
+	phonebook[984759373] = "bowser"
+	fmt.Println(phonebook)
+
+	phonebook[845775485] = "yoshi"
+	fmt.Println(phonebook)
 }
