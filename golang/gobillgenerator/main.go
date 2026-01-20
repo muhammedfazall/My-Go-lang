@@ -1,14 +1,12 @@
 package main
 
-import (
-	"fmt"
-)
-
 func main() {
 
 	myBill := createBill()
 
-	fmt.Println(myBill)
+	promptOptions(myBill)
+
+	// fmt.Println(myBill)
 
 	// mybill := newBill("your bill")
 
