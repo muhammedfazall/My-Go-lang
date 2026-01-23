@@ -19,13 +19,13 @@ func main() {
 
 	// sending custom data through channel
 
-	p:=Person{"fazal","kkd",7}
+	p := Person{"fazal", "kkd", 7}
 
 	pch := make(chan Person)
 
-	go SendPerson(pch,p)
+	go SendPerson(pch, p)
 
-	place := (<- pch).Place
+	place := (<-pch).Place
 	fmt.Println(place)
 
 }
@@ -34,12 +34,12 @@ func SendDataToChannel(ch chan int, value int) {
 	ch <- value
 }
 
-type Person struct{
-	Name string
+type Person struct {
+	Name  string
 	Place string
-	Id int
+	Id    int
 }
 
-func SendPerson(ch chan Person,p Person ){
-	ch<-p
+func SendPerson(ch chan Person, p Person) {
+	ch <- p
 }

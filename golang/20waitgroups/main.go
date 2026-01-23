@@ -1,25 +1,25 @@
 package main
 
-import (
-	"fmt"
-	"sync"
-)
+// import (
+// 	"fmt"
+// 	"sync"
+// )
 
-func main() {
-	var wg sync.WaitGroup
+// func main() {
+// 	var wg sync.WaitGroup
 
-	wg.Add(2)
+// 	wg.Add(2)
 
-	go func() {
-		fmt.Println("one")
-		wg.Done()
-	}()
+// 	go func() {
+// 		fmt.Println("one")
+// 		wg.Done()
+// 	}()
 
-	go func() {
-		fmt.Println("two")
-		wg.Done()
-	}()
+// 	go func() {
+// 		fmt.Println("two")
+// 		wg.Done()
+// 	}()
 	
-	wg.Wait()
-	fmt.Println("finished")
-}
+// 	wg.Wait()
+// 	fmt.Println("finished")
+// }

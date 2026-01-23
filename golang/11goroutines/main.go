@@ -1,23 +1,26 @@
 package main
 
-// import "fmt"
-
 import (
 	"fmt"
 	"time"
 )
 
-// func greet() {
-// 	fmt.Println("from goroutines...")
-// }
+func greeet(n string) {
+	fmt.Println("hey", n)
+}
 
 func main() {
 	go func() {
-		fmt.Println("from goroutines...")
+		fmt.Println("hey go")
 	}()
-	fmt.Println("from main....")
 
-	time.Sleep(1 * time.Second)
+	go func() {
+		fmt.Println("hey n")
+	}()
+
+	go greeet("fazal")
+
+	fmt.Println("hey main")
+
+	time.Sleep(2 * time.Second)
 }
-
-
