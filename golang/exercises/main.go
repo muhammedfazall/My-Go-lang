@@ -3,17 +3,20 @@ package main
 import "fmt"
 
 func main() {
-	var a int
+	// var num int
+	// fmt.Println("Enter the number: ")
+	// fmt.Scan(&num)
 
-	for {
+	// oddOrEven(num)
+	
+	fibonacci(120)
 
-		fmt.Println("Enter the number: ")
-		fmt.Scan(&a)
-
-		if a%2 == 0 {
-			fmt.Printf("The number %v is even\n", a)
-		} else {
-			fmt.Printf("The number %v is odd\n", a)
+	defer func ()  {
+		if r := recover() ; r != nil{
+			fmt.Println("panic recovered",r)
 		}
-	}
+	}()
+
+	result := Divide(2,0)
+	fmt.Println(result)
 }
