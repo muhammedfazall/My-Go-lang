@@ -15,7 +15,8 @@ type User struct {
 }
 
 func main() {
-	r := gin.Default()
+	r := gin.New()
+	r.Use(MyLogger())
 
 	r.GET("/health", healthFn)
 	r.GET("/user/:name", greet)
@@ -57,4 +58,15 @@ func createUser(c *gin.Context) {
 	// }
 
 	c.JSON(201, gin.H{"message": "User" + req.Name + "created!"})
+}
+
+func MyLogger() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		path := c.Request.URL.Path
+		method := c.Request.Method
+
+		fmt.Printf("[%v] - %v \n",method, path)
+
+		c.Next()
+	}
 }
