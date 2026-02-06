@@ -19,4 +19,13 @@ func main() {
 
 	result := Divide(2,0)
 	fmt.Println(result)
+
+
+  
+//   fmt.Println(Count(-11651))
+//   fmt.Println(Count(15411651))
+  
+//   fmt.Println(IsClear(4561))
+  
+
 }
