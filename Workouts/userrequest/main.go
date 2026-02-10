@@ -1,14 +1,19 @@
 package main
 
 import (
-	"strings"
+	"log"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-type UserInput struct {
-	Username string `json:"username" binding:"required,min=3"`
-	Password string `json:"password" binding:"required,min=8"`
+type User struct {
+	ID       uint   `gorm:"primaryKey"`
+	Email    string `gorm:"unique;not null"`
+	Password string `gorm:"not null" json:"password" binding:"required,min=6"`
+	Age      int    `json:"age"`
 }
 
 type UserRequest struct {
@@ -16,11 +21,25 @@ type UserRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
+var DB *gorm.DB
+
 func main() {
+	var err error
+	dsn := "host=localhost user=postgres password=passsql dbname=demodb port=5432 sslmode=disable"
+
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Fatalf("Error connecting to the database: %v", err)
+	}
+
+	if err := DB.AutoMigrate(&User{}); err != nil {
+		log.Fatal(err)
+	}
 
 	r := gin.Default()
 
-	r.POST("/users", handleCreateUser)
+	// r.POST("/users", handleCreateUser)
+	r.POST("/signup",handleSignup)
 	r.POST("/login", handleLogin)
 
 	auth := r.Group("/auth")
@@ -36,14 +55,20 @@ func main() {
 
 func handleLogin(c *gin.Context) {
 	var req UserRequest
+	var user User
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{"error": "invalid json format"})
 		return
 	}
 
-	if req.Email != "admin@go.com" || req.Password != "password123" {
-		c.JSON(401, gin.H{"error": "invalid credentials"})
+	if err := DB.Where("email = ?",req.Email).First(&user).Error ; err != nil{
+		c.JSON(401,gin.H{"error":"invalid email or password!"})
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password),[]byte(req.Password)); err != nil{
+		c.JSON(401,gin.H{"error":"invalid email or password!"})
 		return
 	}
 
@@ -56,42 +81,42 @@ func handleLogin(c *gin.Context) {
 	c.JSON(200, gin.H{"token": accessTkn})
 }
 
-func handleCreateUser(c *gin.Context) {
-	var user UserInput
+// func handleCreateUser(c *gin.Context) {
+// 	var user User
 
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(400, gin.H{"error": "Validation failed: "})
+// 	if err := c.ShouldBindJSON(&user); err != nil {
+// 		c.JSON(400, gin.H{"error": "Validation failed: "})
+// 		return
+// 	}
+
+// 	c.JSON(201, gin.H{"message": "User validation passed!", "data": user.Username})
+// }
+
+func handleSignup(c *gin.Context) {
+	var req User
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": "invalid JSON"})
 		return
 	}
 
-	c.JSON(201, gin.H{"message": "User validation passed!", "data": user.Username})
-}
+	hashed, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 
-func AuthMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		authheader := c.GetHeader("Authorization")
-
-		if authheader == "" {
-			c.AbortWithStatusJSON(401, gin.H{"error": "Authorization header is missing"})
-			return
-		}
-
-		parts := strings.SplitN(authheader," ",2)
-		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer"{
-			c.AbortWithStatusJSON(401,gin.H{"error":"Authorization header is missing"})
-			return
-		}
-
-		tokenString := parts[1]
-
-		claims, err := ValidateToken(tokenString)
-		if err != nil {
-			c.AbortWithStatusJSON(401, gin.H{"error": "invalid token"})
-			return
-		}
-
-		c.Set("UserEmail", claims.Email)
-
-		c.Next()
+	user := User{
+		Email:    req.Email,
+		Password: string(hashed),
+		Age:      req.Age,
 	}
+
+	if err := DB.Create(&user).Error; err != nil {
+		c.JSON(500, gin.H{"error": "Could not create user"})
+		return
+	}
+
+	c.JSON(201, gin.H{
+		"message": "Registered Successfully",
+		"email":   user.Email},
+	)
+
 }
+
