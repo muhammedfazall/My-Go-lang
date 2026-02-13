@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -11,12 +11,14 @@ var secretKey = []byte("secret_key_123")
 
 type MyClaims struct {
 	Email string `json:"email"`
+	Role  string `json:"role"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(email string) (string, error) {
+func GenerateToken(email, role string) (string, error) {
 	claims := MyClaims{
 		Email: email,
+		Role:  role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -33,7 +35,7 @@ func ValidateToken(tkn string) (*MyClaims, error) {
 
 	token, err := jwt.ParseWithClaims(tkn, claims, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method")
+			return nil, errors.New("unexpected signing method")
 		}
 		return secretKey, nil
 	})
@@ -41,10 +43,8 @@ func ValidateToken(tkn string) (*MyClaims, error) {
 		return nil, err
 	}
 
-	
-
 	if !token.Valid {
-		return nil, err
+		return nil, errors.New("token is unauth or expired")
 	}
 
 	return claims, nil

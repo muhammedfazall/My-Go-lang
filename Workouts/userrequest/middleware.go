@@ -30,7 +30,22 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		c.Set("UserEmail", claims.Email)
+		c.Set("UserRole",claims.Role)
 
+		c.Next()
+	}
+}
+
+
+func AdminMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		role,exists := c.Get("UserRole")
+
+		if !exists || role != "admin"{
+			c.JSON(403,gin.H{"error":"Forbidden: Admin access only!"})
+			c.Abort()
+			return 
+		}
 		c.Next()
 	}
 }

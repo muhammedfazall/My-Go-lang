@@ -1,6 +1,11 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+	"time"
+
+	"github.com/gin-gonic/gin"
+)
 
 
 type Input struct{
@@ -10,7 +15,8 @@ type Input struct{
 
 func main() {
 
-	r := gin.Default()
+	r := gin.New()
+	r.Use(Logger())
 
 	r.POST("/add",handleAdd)
 
@@ -29,4 +35,22 @@ func handleAdd(c *gin.Context){
 	sum := req.Num1 + req.Num2
 
 	c.JSON(200,gin.H{"sum":sum})
+}
+
+func Logger() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		start := time.Now()
+
+
+		method := ctx.Request.Method
+		path := ctx.FullPath()
+
+		ctx.Next()
+
+		status := ctx.Writer.Status()
+
+		duration := time.Since(start)
+
+		fmt.Printf("[%s] - %s - status:%v / in %v",method,path,status,duration)
+	}
 }
